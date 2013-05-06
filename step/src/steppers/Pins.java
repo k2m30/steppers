@@ -5,6 +5,6 @@ public static boolean [] pins;
 
 Pins ()
 {
-	pins = new boolean [25];
+	pins = new  boolean [25];
 }
 }

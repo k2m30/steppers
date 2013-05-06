@@ -1,7 +1,7 @@
 package steppers;
 
 public class Brezenham {
-	private boolean[] _ticks;
+	private  boolean[] _ticks;
 
 	// Этот код "рисует" все 9 видов отрезков. Наклонные (из начала в конец и из
 	// конца в начало каждый), вертикальный и горизонтальный - тоже из начала в

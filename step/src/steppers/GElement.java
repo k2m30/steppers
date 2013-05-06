@@ -4,7 +4,7 @@ enum EType {
 	line, // x1 y1 x2 y2
 	rectangle, // x y width height
 	ellipse, // cx cy rx ry
-	path, bezier, moveTo, paintTo
+	path, bezier, moveTo,  paintTo
 };
 
 public class GElement {
