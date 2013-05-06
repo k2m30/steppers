@@ -56,9 +56,11 @@ public class step {
 		Point initialPoint = new Point();
 		initialPoint = initialize(properties.initialXTicks,
 				properties.initialYTicks); // инициализация, выставление в центр
-
+		initialPoint = new Point();
 		initialPoint.x = 500;
 		initialPoint.y = 500;
+
+		allLines = new ArrayList<Segment>();
 		allLines.add(new Segment(initialPoint.x, initialPoint.y,
 				initialPoint.x - 400, initialPoint.y));
 		ArrayList<State> states = makeStates(initialPoint, allLines); // получение
@@ -68,7 +70,7 @@ public class step {
 																		// для
 																		// рисования
 
-		String outputFileName = null;
+		String outputFileName = "path";
 		makeDrawFile(states, outputFileName); // запись состояний в файл
 	}
 
@@ -82,16 +84,24 @@ public class step {
 			String outputFileName) {
 		try {
 			File f = new File(outputFileName
-					+ new Date(System.currentTimeMillis()).toString());
+					+ new Date(System.currentTimeMillis()).toString() + ".txt");
 			f.createNewFile();
 			FileWriter fw = new FileWriter(f);
+			fw.append("G90 G40 G17 G21");
+			fw.append('\n');
+
 			for (int i = 0; i < states.size(); i++) {
+				fw.append("G01 X");
 				fw.append(Double.toString(states.get(i).ll));
-				fw.append(' ');
+				fw.append(" Y");
 				fw.append(Double.toString(states.get(i).lr));
+				fw.append(" F");
+				fw.append(Double.toString(properties.linearVelocity));
 				fw.append('\n');
-				fw.flush();
+			
 			}
+			fw.append("M30");
+			fw.flush();
 			fw.close();
 		} catch (Exception ex) {
 			p(ex.toString() + " makeDrawFile");
@@ -106,12 +116,12 @@ public class step {
 		// first segment from initial point
 		_states.add(new State(initialPoint.x, initialPoint.y, properties));
 		//
-		Segment s = iterator.next();
+		Segment s;
 
 		while (iterator.hasNext()) {
-
-			_states.add(new State(s.xEnd, s.yEnd, properties));
 			s = iterator.next();
+			_states.add(new State(s.xEnd, s.yEnd, properties));
+
 		}
 
 		return _states;
