@@ -8,6 +8,46 @@ enum EType {
 };
 
 public class GElement {
+	public double getP1() {
+		return p1;
+	}
+
+	public void setP1(double p1) {
+		this.p1 = p1;
+	}
+
+	public double getP2() {
+		return p2;
+	}
+
+	public void setP2(double p2) {
+		this.p2 = p2;
+	}
+
+	public double getP3() {
+		return p3;
+	}
+
+	public void setP3(double p3) {
+		this.p3 = p3;
+	}
+
+	public double getP4() {
+		return p4;
+	}
+
+	public void setP4(double p4) {
+		this.p4 = p4;
+	}
+
+	public EType getType() {
+		return type;
+	}
+
+	public void setType(EType type) {
+		this.type = type;
+	}
+
 	private double p1;
 	private double p2;
 	private double p3;
@@ -47,7 +87,7 @@ public class GElement {
 		return;
 	}
 
-	public double getP1(int index) {
+	public double getP(int index) {
 		switch (index) {
 		case 1:
 			return p1;

@@ -15,8 +15,7 @@ import org.w3c.dom.Node;
 public class step {
 
 	private static ArrayList<GElement> list = new ArrayList<GElement>();
-	private static ArrayList<GElement> segmentList = new ArrayList<GElement>();
-	private static double _maxSegmentLength;
+
 	private static Properties properties = new Properties();
 
 	/**
@@ -26,7 +25,7 @@ public class step {
 
 		String fileName = null;
 
-		readProperties(fileName); // читаем свойства из ini файла
+		readProperties(fileName); // читаем свойства из conf файла
 
 		String svgFileName = getFilename(); // берем файл для рисования
 
@@ -35,38 +34,35 @@ public class step {
 																// (линия,
 																// прямоугольник
 																// и т.д.)
-		listTrace(elements);
 
-		ArrayList<Segment> lines = split(elements, _maxSegmentLength); // делим
-																		// элементы
-																		// на
-																		// небольшие
-																		// линейные
-																		// сегменты
+		Point initialPoint = initialize(properties.initialXTicks,
+				properties.initialYTicks); // инициализация, выставление в
+											// начальную точку
 
-		ArrayList<Segment> moreLines = addMoveTo(lines); // добавляем переходы
-															// между элементами
-		ArrayList<Segment> allLines = addPathToLines(moreLines); // добавляем
-																	// обходные
-																	// пути для
-																	// более
-																	// плавного
-																	// движения
+		ArrayList<GElement> moreElements = addMoveTo(elements, initialPoint); // добавляем
+		// переходы
+		// между элементами
+		listTrace(moreElements);
 
-		Point initialPoint = new Point();
-		initialPoint = initialize(properties.initialXTicks,
-				properties.initialYTicks); // инициализация, выставление в центр
-		initialPoint = new Point();
-		initialPoint.x = 500;
-		initialPoint.y = 500;
+		ArrayList<Segment> segments = split(moreElements,
+				properties.maxSegmentLength); // делим
+		// элементы
+		// на
+		// небольшие
+		// линейные
+		// сегменты
 
-		allLines = new ArrayList<Segment>();
-		allLines.add(new Segment(initialPoint.x, initialPoint.y,
-				initialPoint.x - 400, initialPoint.y));
+		ArrayList<Segment> allLines = addPathToLines(segments); // добавляем
+																// обходные
+																// пути для
+																// более
+																// плавного
+																// движения
+
 		ArrayList<State> states = makeStates(initialPoint, allLines); // получение
 																		// состояний
-																		// пинов
-																		// порта
+																		// длин
+																		// ремней
 																		// для
 																		// рисования
 
@@ -84,23 +80,43 @@ public class step {
 			String outputFileName) {
 		try {
 			File f = new File(outputFileName
-					+ new Date(System.currentTimeMillis()).toString() + ".txt");
+					+ new Date(System.currentTimeMillis()).toString() + ".ngc");
 			f.createNewFile();
 			FileWriter fw = new FileWriter(f);
-			fw.append("G90 G40 G17 G21");
+
+			fw.append("%");
+			fw.append('\n');
+			// fw.append("G90 G40 G17 G21");
+			// fw.append('\n');
+			fw.append("G51Y-1");
 			fw.append('\n');
 
 			for (int i = 0; i < states.size(); i++) {
-				fw.append("G01 X");
-				fw.append(Double.toString(states.get(i).ll));
-				fw.append(" Y");
-				fw.append(Double.toString(states.get(i).lr));
-				fw.append(" F");
-				fw.append(Double.toString(properties.linearVelocity));
-				fw.append('\n');
-			
+
+				if (!states.get(i).isMoveTo) { // прорисовка элементов
+					fw.append("G01 X");
+					fw.append(Double.toString(states.get(i).ll));
+					fw.append(" Y");
+					fw.append(Double.toString(states.get(i).lr));
+					fw.append(" Z100");
+					fw.append(" F");
+					fw.append(Double.toString(properties.linearVelocity
+							* states.get(i).rate));
+					fw.append(" " + states.get(i).comment);
+					fw.append('\n');
+				} else { // быстрое перемещение между элементами
+					fw.append("G00 X");
+					fw.append(Double.toString(states.get(i).ll));
+					fw.append(" Y");
+					fw.append(Double.toString(states.get(i).lr));
+					fw.append(" Z0");
+					fw.append('\n');
+				}
 			}
 			fw.append("M30");
+			fw.append('\n');
+			fw.append("%");
+			fw.append('\n');
 			fw.flush();
 			fw.close();
 		} catch (Exception ex) {
@@ -108,19 +124,31 @@ public class step {
 		}
 	}
 
+	/**
+	 * makeStates
+	 * 
+	 * @param initialPoint
+	 *            - начальная точка
+	 * @param allLines
+	 *            - список сегментов
+	 * @return список состояний
+	 */
 	private static ArrayList<State> makeStates(Point initialPoint,
 			ArrayList<Segment> allLines) {
 		ArrayList<State> _states = new ArrayList<State>();
 		Iterator<Segment> iterator;
 		iterator = allLines.iterator();
-		// first segment from initial point
-		_states.add(new State(initialPoint.x, initialPoint.y, properties));
-		//
+
 		Segment s;
 
 		while (iterator.hasNext()) {
 			s = iterator.next();
-			_states.add(new State(s.xEnd, s.yEnd, properties));
+			State st = new State(s, properties);
+
+			if (s.isMoveToSegment)
+				st.isMoveTo = true;
+			st.comment = s.comment;
+			_states.add(st);
 
 		}
 
@@ -129,24 +157,193 @@ public class step {
 
 	private static Point initialize(double initialXTicks, double initialYTicks) {
 		// TODO Auto-generated method stub
-		return null;
+		return new Point(500, 500);
 	}
 
 	private static ArrayList<Segment> addPathToLines(
 			ArrayList<Segment> moreLines) {
-		// TODO Auto-generated method stub
-		return null;
+
+		for (int i = 0; i < moreLines.size() - 1; i++) {
+			// moreLines.get(i).
+		}
+
+		return moreLines;
 	}
 
-	private static ArrayList<Segment> addMoveTo(ArrayList<Segment> lines) {
-		// TODO Auto-generated method stub
-		return null;
+	private static ArrayList<GElement> addMoveTo(ArrayList<GElement> elements,
+			Point initialPoint) {
+		for (int i = 0; i < elements.size() - 1; i++) {
+			switch (elements.get(i).type) {
+			case bezier:
+				break;
+			case ellipse:
+				break;
+			case line:
+				switch (elements.get(i + 1).type) {
+				case bezier:
+					break;
+				case ellipse:
+					break;
+				case line:
+					elements.add(i + 1, new GElement(EType.moveTo, elements
+							.get(i).getP3(), elements.get(i).getP4(), elements
+							.get(i + 1).getP1(), elements.get(i + 1).getP2()));
+					break;
+				case moveTo:
+					break;
+				case paintTo:
+					break;
+				case path:
+					break;
+				case rectangle:
+					elements.add(i + 1, new GElement(EType.moveTo, elements
+							.get(i).getP3(), elements.get(i).getP4(), elements
+							.get(i + 1).getP1(), elements.get(i + 1).getP2()));
+					break;
+				default:
+					break;
+
+				}
+				break;
+			case moveTo:
+				break;
+			case paintTo:
+				break;
+			case path:
+				break;
+			case rectangle:
+				switch (elements.get(i + 1).type) {
+				case bezier:
+					break;
+				case ellipse:
+					break;
+				case line:
+					elements.add(i + 1, new GElement(EType.moveTo, elements
+							.get(i).getP1(), elements.get(i).getP2(), elements
+							.get(i + 1).getP1(), elements.get(i + 1).getP2()));
+					break;
+				case moveTo:
+					break;
+				case paintTo:
+					break;
+				case path:
+					break;
+				case rectangle:
+					elements.add(i + 1, new GElement(EType.moveTo, elements
+							.get(i).getP1(), elements.get(i).getP2(), elements
+							.get(i + 1).getP1(), elements.get(i + 1).getP2()));
+					break;
+				default:
+					break;
+
+				}
+				break;
+			default:
+				break;
+
+			}
+		}
+
+		elements.add(0, new GElement(EType.moveTo, initialPoint.x,
+				initialPoint.y, elements.get(0).getP1(), elements.get(0)
+						.getP2())); // добавление перехода в начало рисования
+
+		for (int i = 0; i < elements.size(); i++) { // удаление нулевых
+													// переходов (начало и конец
+													// совпадают)
+			if ((elements.get(i).type == EType.moveTo)
+					&& (elements.get(i).getP1() == elements.get(i).getP3())
+					&& (elements.get(i).getP2() == elements.get(i).getP4())) {
+				elements.remove(i);
+			}
+		}
+		return elements;
 	}
 
 	private static ArrayList<Segment> split(ArrayList<GElement> elements,
-			double _maxSegmentLength2) {
+			double _maxSegmentLength) {
+		ArrayList<Segment> s = new ArrayList<Segment>();
+
+		GElement e;
+		Iterator<GElement> eIt = elements.iterator();
+
+		while (eIt.hasNext()) {
+			e = eIt.next();
+
+			switch (e.type) {
+			case line:
+				s.addAll(splitLine(e, _maxSegmentLength));
+				break;
+			case bezier:
+				break;
+			case ellipse:
+				break;
+			case moveTo:
+				Segment moveToSegment = new Segment(e.getP1(), e.getP2(),
+						e.getP3(), e.getP4());
+				moveToSegment.isMoveToSegment = true;
+				s.add(moveToSegment);
+				break;
+			case paintTo:
+				break;
+			case path:
+				break;
+			case rectangle:
+				s.addAll(splitLine(
+						new GElement(EType.line, e.getP(1), e.getP(2), e
+								.getP(1) + e.getP(3), e.getP(2)),
+						_maxSegmentLength));
+				s.addAll(splitLine(
+						new GElement(EType.line, e.getP(1) + e.getP(3), e
+								.getP(2), e.getP(1) + e.getP(3), e.getP(2)
+								+ e.getP(4)), _maxSegmentLength));
+				s.addAll(splitLine(
+						new GElement(EType.line, e.getP(1) + e.getP(3), e
+								.getP(2) + e.getP(4), e.getP(1), e.getP(2)
+								+ e.getP(4)), _maxSegmentLength));
+				s.addAll(splitLine(
+						new GElement(EType.line, e.getP(1), e.getP(2)
+								+ e.getP(4), e.getP(1), e.getP(2)),
+						_maxSegmentLength));
+				break;
+			default:
+				break;
+			}
+
+		}
+
 		// TODO Auto-generated method stub
-		return null;
+		return s;
+	}
+
+	private static ArrayList<Segment> splitLine(GElement e,
+			double _maxSegmentLength) {
+
+		ArrayList<Segment> s = new ArrayList<Segment>();
+
+		double dx = e.getP(3) - e.getP(1);
+		double dy = e.getP(4) - e.getP(2);
+		double l = Math.sqrt(dx * dx + dy * dy);
+		int n = (int) Math.round(l / _maxSegmentLength) + 1;
+
+		double x1 = e.getP(1);
+		double x2;
+		double y1 = e.getP(2);
+		double y2;
+		for (int i = 1; i <= n; i++) {
+			x2 = x1 + dx / n;
+			y2 = y1 + dy / n;
+			Segment segment = new Segment(x1, y1, x2, y2);
+			segment.comment = new String("(Line " + e.getP1() + " " + e.getP2()
+					+ " " + e.getP3() + " " + e.getP4() + " " + "Segment #" + i
+					+ ")");
+			segment.segmentLength = Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+			s.add(segment);
+			x1 = x2;
+			y1 = y2;
+		}
+		return s;
+
 	}
 
 	private static void readProperties(String fileName) {
@@ -156,47 +353,15 @@ public class step {
 		properties.a = 10;
 		properties.canvasSizeX = 846;
 		properties.canvasSizeY = 1200;
-		properties.linearVelocity = 200;
+		properties.linearVelocity = 15000;
 		properties.maxV = 250;
 		properties.radius = 15.9;
 		properties.stepsPerRound = 200;
 		properties.tickSize = 0.000250;
-
+		properties.maxSegmentLength = 10;
 		properties.calculate();
 
 		return;
-	}
-
-	private static ArrayList<State> moveTo(double xto, double yto) {
-		ArrayList<State> states = new ArrayList<State>();
-
-		return states;
-
-	}
-
-	private static ArrayList<GElement> polyline(ArrayList<GElement> _list,
-			double _maxSegmentLength) {
-		Iterator<GElement> iterator = _list.iterator();
-		while (iterator.hasNext()) {
-			GElement ge = (GElement) iterator.next();
-
-			switch (ge.type) {
-			case line:
-			case rectangle:
-			case ellipse:
-			default:
-				break;
-
-			}
-		}
-
-		return _list;
-	}
-
-	private static ArrayList<GElement> lineToPolyline(GElement ge) {
-		ArrayList<GElement> segments = new ArrayList<GElement>();
-
-		return segments;
 	}
 
 	public static void listTrace(ArrayList<GElement> _list) {
@@ -210,7 +375,7 @@ public class step {
 
 	public static ArrayList<GElement> parseSVG(String svgFileName) {
 		try {
-			p("file:/Users/Mikhail/Documents/workspace/steppers/bin/Domik.svg");
+			p(svgFileName);
 			String parser = XMLResourceDescriptor.getXMLParserClassName();
 			SAXSVGDocumentFactory f = new SAXSVGDocumentFactory(parser);
 			String uri = svgFileName;

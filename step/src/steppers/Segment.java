@@ -5,8 +5,9 @@ public double xStart;
 public double yStart;
 public double xEnd;
 public double yEnd;
-public double xEndReal;
-public double yEndReal;
+public boolean isMoveToSegment = false;
+public double segmentLength;
+public String comment;
 
 Segment (double _xStart, double _yStart, double _xEnd, double _yEnd)
 {

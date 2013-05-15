@@ -14,6 +14,7 @@ public class Properties {
 	public double initialYTicks;
 	
 	public double dl; //изменение длины ремня за один тик
+	public double maxSegmentLength;
 	
 	public void calculate ()
 	{
