@@ -68,6 +68,12 @@ public class step {
 
 		String outputFileName = "path";
 		makeDrawFile(states, outputFileName); // запись состояний в файл
+		makeGraphicFile (outputFileName); //создание графического файла
+	}
+
+	private static void makeGraphicFile(String fileName) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	private static String getFilename() {
