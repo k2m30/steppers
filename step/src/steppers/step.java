@@ -1,7 +1,10 @@
 package steppers;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -17,7 +20,7 @@ public class step {
 	private static ArrayList<GElement> list = new ArrayList<GElement>();
 
 	private static Properties properties = new Properties();
-
+	private static java.util.Properties drawingProperties;
 	/**
 	 * @param args
 	 */
@@ -25,7 +28,8 @@ public class step {
 
 		String fileName = null;
 
-		readProperties(fileName); // читаем свойства из conf файла
+		step instance = new step();
+		drawingProperties = instance.readProperties(fileName); // читаем свойства из conf файла
 
 		String svgFileName = getFilename(); // берем файл для рисования
 
@@ -67,7 +71,7 @@ public class step {
 																		// рисования
 
 		String outputFileName = "path";
-		makeDrawFile(states, outputFileName); // запись состояний в файл
+		instance.makeDrawFile(states, outputFileName); // запись состояний в файл
 		makeGraphicFile (outputFileName); //создание графического файла
 	}
 
@@ -82,7 +86,7 @@ public class step {
 		return "file:/Users/Mikhail/Documents/workspace/steppers/bin/Domik.svg";
 	}
 
-	private static void makeDrawFile(ArrayList<State> states,
+	private void makeDrawFile(ArrayList<State> states,
 			String outputFileName) {
 		try {
 			File f = new File(outputFileName
@@ -123,6 +127,9 @@ public class step {
 			fw.append('\n');
 			fw.append("%");
 			fw.append('\n');
+			
+			drawingProperties.store(fw, "drawing propreties");
+			
 			fw.flush();
 			fw.close();
 		} catch (Exception ex) {
@@ -352,22 +359,32 @@ public class step {
 
 	}
 
-	private static void readProperties(String fileName) {
-		// TODO Auto-generated method stub
-		properties.initialXTicks = 1000;
-		properties.initialYTicks = 1000;
-		properties.a = 10;
-		properties.canvasSizeX = 846;
-		properties.canvasSizeY = 1200;
-		properties.linearVelocity = 15000;
-		properties.maxV = 250;
-		properties.radius = 15.9;
-		properties.stepsPerRound = 200;
-		properties.tickSize = 0.000250;
-		properties.maxSegmentLength = 10;
+	private java.util.Properties readProperties(String fileName) {
+		
+		java.util.Properties prop = new java.util.Properties();
+		
+		try {
+			prop.load(getClass().getResourceAsStream("properties.conf"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		
+		
+		properties.initialXTicks = Double.parseDouble(prop.getProperty("initialXTicks"));//1000
+		properties.initialYTicks = Double.parseDouble(prop.getProperty("initialYTicks"));//1000;
+		properties.a = Double.parseDouble(prop.getProperty("a"));//10;
+		properties.canvasSizeX = Double.parseDouble(prop.getProperty("canvasSizeX"));//846;
+		properties.canvasSizeY = Double.parseDouble(prop.getProperty("canvasSizeY"));//1200;
+		properties.linearVelocity = Double.parseDouble(prop.getProperty("linearVelocity"));//15000;
+		properties.maxV = Double.parseDouble(prop.getProperty("maxV"));//250;
+		properties.radius = Double.parseDouble(prop.getProperty("radius"));//15.9;
+		properties.stepsPerRound = Double.parseDouble(prop.getProperty("stepsPerRound"));//200;
+		properties.tickSize = Double.parseDouble(prop.getProperty("tickSize"));//0.000250;
+		properties.maxSegmentLength = Double.parseDouble(prop.getProperty("maxSegmentLength"));//10;
 		properties.calculate();
 
-		return;
+		return prop;
 	}
 
 	public static void listTrace(ArrayList<GElement> _list) {
