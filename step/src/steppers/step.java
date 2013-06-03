@@ -1,10 +1,10 @@
 package steppers;
 
 import java.io.File;
-import java.io.FileInputStream;
+
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -21,63 +21,181 @@ public class step {
 
 	private static Properties properties = new Properties();
 	private static java.util.Properties drawingProperties;
+	public static step instance = new step();
+
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 
-		String fileName = null;
+		String fileName = "properties.conf";
 
-		step instance = new step();
-		drawingProperties = instance.readProperties(fileName); // читаем свойства из conf файла
+		// читаем свойства из conf файла
+		drawingProperties = instance.readProperties(fileName);
 
-		String svgFileName = getFilename(); // берем файл для рисования
+		// берем файл для рисования
+		String svgFileName = getFilename();
 
-		ArrayList<GElement> elements = parseSVG(svgFileName); // разбираем файл
-																// на элементы
-																// (линия,
-																// прямоугольник
-																// и т.д.)
+		// разбираем файл на элементы (линия, прямоугольник и т.д.)
+		ArrayList<GElement> elements = parseSVG(svgFileName);
 
+		// инициализация, выставление в начальную точку
 		Point initialPoint = initialize(properties.initialXTicks,
-				properties.initialYTicks); // инициализация, выставление в
-											// начальную точку
+				properties.initialYTicks);
 
-		ArrayList<GElement> moreElements = addMoveTo(elements, initialPoint); // добавляем
-		// переходы
-		// между элементами
+		// добавляем переходы между элементами
+		ArrayList<GElement> moreElements = addMoveTo(elements, initialPoint);
+
 		listTrace(moreElements);
 
+		// делим элементы на небольшие линейные сегменты
 		ArrayList<Segment> segments = split(moreElements,
-				properties.maxSegmentLength); // делим
-		// элементы
-		// на
-		// небольшие
-		// линейные
-		// сегменты
+				properties.maxSegmentLength);
 
-		ArrayList<Segment> allLines = addPathToLines(segments); // добавляем
-																// обходные
-																// пути для
-																// более
-																// плавного
-																// движения
+		// добавляем обходные пути для более плавного движения
+		ArrayList<Segment> allLines = addPathToLines(segments);
 
-		ArrayList<State> states = makeStates(initialPoint, allLines); // получение
-																		// состояний
-																		// длин
-																		// ремней
-																		// для
-																		// рисования
+		// получение состояний длин ремней для рисования
+		ArrayList<State> states = makeStates(initialPoint, allLines);
 
-		String outputFileName = "path";
-		instance.makeDrawFile(states, outputFileName); // запись состояний в файл
-		makeGraphicFile (outputFileName); //создание графического файла
+		String outputFileName = "G-code ";
+		// запись G-кода в файл
+		outputFileName = instance.makeNGCfile(states, outputFileName);
+
+		// создание графического файла
+		makeSVGfile(outputFileName);
 	}
 
-	private static void makeGraphicFile(String fileName) {
-		// TODO Auto-generated method stub
-		
+	private static void makeSVGfile(String fileName) {
+		if (fileName.isEmpty()) {
+			return;
+		}
+		ArrayList<String> fileContent;
+		try {
+			fileContent = FileUtil.getFileContent(fileName);
+		} catch (IOException e) {
+
+			e.printStackTrace();
+			return;
+		}
+		Iterator<String> iterator;
+		iterator = fileContent.iterator();
+
+		while (iterator.hasNext()) {
+			System.out.print(iterator.next());
+
+		}
+		instance.writeFile(fileContent, fileName);
+	}
+
+	private void writeFile(ArrayList<String> fileContent, String outputFileName) {
+		Iterator<String> iterator;
+		iterator = fileContent.iterator();
+
+		File f = new File(outputFileName + ".svg");
+		try {
+			f.createNewFile();
+			FileWriter fw = new FileWriter(f);
+
+			fw.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+			fw.append('\n');
+
+			fw.append("<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">");
+			fw.append('\n');
+
+			fw.append("<svg version=\"1.1\" id=\"Layer_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\" ");
+			fw.append('\n');
+			fw.append("\t ");
+
+			fw.append("width=\"" + Double.toString(properties.canvasSizeX)
+					+ "px\" ");
+			fw.append("height=\"" + Double.toString(properties.canvasSizeY)
+					+ "px\" ");
+
+			fw.append("viewBox=\"0 0 "
+					+ Double.toString(properties.canvasSizeX) + " "
+					+ Double.toString(properties.canvasSizeY) + "\""
+					+ " enable-background=\"new 0 0 "
+					+ Double.toString(properties.canvasSizeX) + " "
+					+ Double.toString(properties.canvasSizeY) + "\" "
+					+ "xml:space=\"preserve\">");
+			fw.append('\n');
+
+			fw.append("<marker id = \"pointMarker\" viewBox = \"0 0 12 12\" refX = \"12\" refY = \"6\" markerWidth = \"3\" markerHeight = \"3\" stroke = \"green\" stroke-width = \"2\" fill = \"none\" orient = \"auto\"> "
+					+ "\n"
+					+ "<circle cx = \"6\" cy = \"6\" r = \"5\"/>"
+					+ "\n"
+					+ "</marker>");
+			fw.append('\n');
+
+			double x = (properties.canvasSizeX * properties.canvasSizeX
+					- properties.initialYTicks * properties.dl
+					* properties.initialYTicks * properties.dl + properties.initialXTicks
+					* properties.dl * properties.initialXTicks * properties.dl)
+					/ (2 * properties.canvasSizeX);
+			double y = Math.sqrt(properties.initialXTicks * properties.dl
+					* properties.initialXTicks * properties.dl - x * x);
+
+			double ll = properties.initialXTicks * properties.dl;
+			double lr = properties.initialYTicks * properties.dl;
+
+			for (int i = 0; i < fileContent.size(); i++) {
+				if (fileContent.get(i).contains("G00")) {
+					fw.append("<line fill=\"none\" stroke=\"#FF0000\" stroke-miterlimit=\"5\" x1=\""
+							+ x + "\" y1=\"" + y + "\" ");
+
+					ll = Double.parseDouble(fileContent.get(i).substring(
+							fileContent.get(i).indexOf('X') + 1,
+							fileContent.get(i).indexOf('Y') - 1));
+					lr = Double.parseDouble(fileContent.get(i).substring(
+							fileContent.get(i).indexOf('Y') + 1,
+							fileContent.get(i).indexOf('Z') - 1));
+
+					x = (properties.canvasSizeX * properties.canvasSizeX - lr
+							* lr + ll * ll)
+							/ (2 * properties.canvasSizeX);
+					y = Math.sqrt(ll * ll - x * x);
+
+					fw.append("x2=\"" + x + "\" y2=\"" + y + "\" />");
+					fw.append('\n');
+
+				} else if (fileContent.get(i).contains("G01")) {
+					fw.append("<line fill=\"none\" stroke=\"#000000\" marker-start = \"url(#pointMarker)\" x1=\""
+							+ x + "\" y1=\"" + y + "\" ");
+
+					ll = Double.parseDouble(fileContent.get(i).substring(
+							fileContent.get(i).indexOf('X') + 1,
+							fileContent.get(i).indexOf('Y') - 1));
+					lr = Double.parseDouble(fileContent.get(i).substring(
+							fileContent.get(i).indexOf('Y') + 1,
+							fileContent.get(i).indexOf('Z') - 1));
+
+					x = (properties.canvasSizeX * properties.canvasSizeX - lr
+							* lr + ll * ll)
+							/ (2 * properties.canvasSizeX);
+					y = Math.sqrt(ll * ll - x * x);
+
+					fw.append("x2=\"" + x + "\" y2=\"" + y + "\" />");
+					fw.append('\n');
+
+				}
+
+			}
+
+			fw.append("</svg>");
+			fw.append('\n');
+			fw.flush();
+			fw.close();
+		} catch (IOException e) {
+
+			e.printStackTrace();
+		}
+
+		while (iterator.hasNext()) {
+			System.out.print(iterator.next());
+
+		}
+
 	}
 
 	private static String getFilename() {
@@ -86,8 +204,7 @@ public class step {
 		return "file:/Users/Mikhail/Documents/workspace/steppers/bin/Domik.svg";
 	}
 
-	private void makeDrawFile(ArrayList<State> states,
-			String outputFileName) {
+	private String makeNGCfile(ArrayList<State> states, String outputFileName) {
 		try {
 			File f = new File(outputFileName
 					+ new Date(System.currentTimeMillis()).toString() + ".ngc");
@@ -127,14 +244,17 @@ public class step {
 			fw.append('\n');
 			fw.append("%");
 			fw.append('\n');
-			
+
 			drawingProperties.store(fw, "drawing propreties");
-			
+
 			fw.flush();
 			fw.close();
+			outputFileName = f.getName();
 		} catch (Exception ex) {
 			p(ex.toString() + " makeDrawFile");
 		}
+		return outputFileName;
+
 	}
 
 	/**
@@ -350,7 +470,8 @@ public class step {
 			segment.comment = new String("(Line " + e.getP1() + " " + e.getP2()
 					+ " " + e.getP3() + " " + e.getP4() + " " + "Segment #" + i
 					+ ")");
-			segment.segmentLength = Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+			segment.segmentLength = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1)
+					* (y2 - y1));
 			s.add(segment);
 			x1 = x2;
 			y1 = y2;
@@ -360,28 +481,33 @@ public class step {
 	}
 
 	private java.util.Properties readProperties(String fileName) {
-		
+
 		java.util.Properties prop = new java.util.Properties();
-		
+
 		try {
-			prop.load(getClass().getResourceAsStream("properties.conf"));
+			prop.load(getClass().getResourceAsStream(fileName));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		
-		
-		properties.initialXTicks = Double.parseDouble(prop.getProperty("initialXTicks"));//1000
-		properties.initialYTicks = Double.parseDouble(prop.getProperty("initialYTicks"));//1000;
-		properties.a = Double.parseDouble(prop.getProperty("a"));//10;
-		properties.canvasSizeX = Double.parseDouble(prop.getProperty("canvasSizeX"));//846;
-		properties.canvasSizeY = Double.parseDouble(prop.getProperty("canvasSizeY"));//1200;
-		properties.linearVelocity = Double.parseDouble(prop.getProperty("linearVelocity"));//15000;
-		properties.maxV = Double.parseDouble(prop.getProperty("maxV"));//250;
-		properties.radius = Double.parseDouble(prop.getProperty("radius"));//15.9;
-		properties.stepsPerRound = Double.parseDouble(prop.getProperty("stepsPerRound"));//200;
-		properties.tickSize = Double.parseDouble(prop.getProperty("tickSize"));//0.000250;
-		properties.maxSegmentLength = Double.parseDouble(prop.getProperty("maxSegmentLength"));//10;
+
+		properties.initialXTicks = Double.parseDouble(prop
+				.getProperty("initialXTicks"));// 1000
+		properties.initialYTicks = Double.parseDouble(prop
+				.getProperty("initialYTicks"));// 1000;
+		properties.a = Double.parseDouble(prop.getProperty("a"));// 10;
+		properties.canvasSizeX = Double.parseDouble(prop
+				.getProperty("canvasSizeX"));// 846;
+		properties.canvasSizeY = Double.parseDouble(prop
+				.getProperty("canvasSizeY"));// 1200;
+		properties.linearVelocity = Double.parseDouble(prop
+				.getProperty("linearVelocity"));// 15000;
+		properties.maxV = Double.parseDouble(prop.getProperty("maxV"));// 250;
+		properties.radius = Double.parseDouble(prop.getProperty("radius"));// 15.9;
+		properties.stepsPerRound = Double.parseDouble(prop
+				.getProperty("stepsPerRound"));// 200;
+		properties.tickSize = Double.parseDouble(prop.getProperty("tickSize"));// 0.000250;
+		properties.maxSegmentLength = Double.parseDouble(prop
+				.getProperty("maxSegmentLength"));// 10;
 		properties.calculate();
 
 		return prop;
