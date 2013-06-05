@@ -37,16 +37,16 @@ public class step {
 		String svgFileName = getFilename();
 
 		// разбираем файл на элементы (линия, прямоугольник и т.д.)
-		ArrayList<GElement> elements = parseSVG(svgFileName);
-
+		ArrayList<GElement> elements = parseSVGwrapper(svgFileName);
+		//elements = list;
 		// инициализация, выставление в начальную точку
 		Point initialPoint = initialize(properties.initialXTicks,
 				properties.initialYTicks);
-
+		listTrace(list);
 		// добавляем переходы между элементами
 		ArrayList<GElement> moreElements = addMoveTo(elements, initialPoint);
 
-		listTrace(moreElements);
+		// listTrace(moreElements);
 
 		// делим элементы на небольшие линейные сегменты
 		ArrayList<Segment> segments = split(moreElements,
@@ -64,6 +64,8 @@ public class step {
 
 		// создание графического файла
 		makeSVGfile(outputFileName);
+
+		p("-----finish");
 	}
 
 	private static void makeSVGfile(String fileName) {
@@ -78,19 +80,11 @@ public class step {
 			e.printStackTrace();
 			return;
 		}
-		Iterator<String> iterator;
-		iterator = fileContent.iterator();
 
-		while (iterator.hasNext()) {
-			System.out.print(iterator.next());
-
-		}
 		instance.writeFile(fileContent, fileName);
 	}
 
 	private void writeFile(ArrayList<String> fileContent, String outputFileName) {
-		Iterator<String> iterator;
-		iterator = fileContent.iterator();
 
 		File f = new File(outputFileName + ".svg");
 		try {
@@ -191,16 +185,12 @@ public class step {
 			e.printStackTrace();
 		}
 
-		while (iterator.hasNext()) {
-			System.out.print(iterator.next());
-
-		}
-
 	}
 
 	private static String getFilename() {
 
 		// TODO Auto-generated method stub
+		//return "file:/Users/Mikhail/Documents/workspace/steppers/bin/Trifold_Brochure.svg";
 		return "file:/Users/Mikhail/Documents/workspace/steppers/bin/Domik.svg";
 	}
 
@@ -522,7 +512,8 @@ public class step {
 		return;
 	}
 
-	public static ArrayList<GElement> parseSVG(String svgFileName) {
+	private static ArrayList<GElement> parseSVGwrapper(String svgFileName) {
+		
 		try {
 			p(svgFileName);
 			String parser = XMLResourceDescriptor.getXMLParserClassName();
@@ -539,51 +530,64 @@ public class step {
 					break;
 				}
 			}
-
+			p(svg.getChildNodes().getLength());
 			// Поиск элементов дерева
-
-			for (Node n = svg.getFirstChild(); n != null; n = n
-					.getNextSibling()) {
-
-				if (n.getNodeType() == Node.ELEMENT_NODE) {
-
-					if (n.getLocalName().equals("rect")) {
-						Element e = (Element) n;
-
-						GElement el = new GElement(EType.rectangle,
-								e.getAttribute("x"), e.getAttribute("y"),
-								e.getAttribute("width"),
-								e.getAttribute("height"));
-
-						list.add(el);
-					}
-
-					else if (n.getLocalName().equals("line")) {
-						Element e = (Element) n;
-
-						GElement el = new GElement(EType.line,
-								e.getAttribute("x1"), e.getAttribute("y1"),
-								e.getAttribute("x2"), e.getAttribute("y2"));
-
-						list.add(el);
-					} else if (n.getLocalName().equals("ellipse")) {
-						Element e = (Element) n;
-
-						GElement el = new GElement(EType.ellipse,
-								e.getAttribute("cx"), e.getAttribute("cy"),
-								e.getAttribute("rx"), e.getAttribute("ry"));
-
-						list.add(el);
-					}
-
-				}
+			for (int i = 0; i < svg.getChildNodes().getLength(); i++) {
+				p(svg.getChildNodes().item(i).getChildNodes().getLength());
 
 			}
+
+			parseSVGbody(svg);
 
 		} catch (Exception ex) {
 			p(ex.toString() + " Parse SVG");
 		}
 		return list;
+	}
+
+	private static void parseSVGbody(Node n) {
+		parseSVGNodeAnalysis(n);
+		for (int i = 0; i < n.getChildNodes().getLength(); i++) {
+			Node k = n.getChildNodes().item(i);
+			parseSVGbody(k);
+		}
+	}
+
+	private static void parseSVGNodeAnalysis(Node k) {
+		if (k.getLocalName() != null) {
+			p(k.getLocalName());
+
+			// ///// BODY
+			if (k.getLocalName().equals("rect")) {
+				Element e = (Element) k;
+
+				GElement el = new GElement(EType.rectangle,
+						e.getAttribute("x"), e.getAttribute("y"),
+						e.getAttribute("width"), e.getAttribute("height"));
+
+				list.add(el);
+			}
+
+			else if (k.getLocalName().equals("line")) {
+				Element e = (Element) k;
+
+				GElement el = new GElement(EType.line, e.getAttribute("x1"),
+						e.getAttribute("y1"), e.getAttribute("x2"),
+						e.getAttribute("y2"));
+
+				list.add(el);
+			} else if (k.getLocalName().equals("ellipse")) {
+				Element e = (Element) k;
+
+				GElement el = new GElement(EType.ellipse, e.getAttribute("cx"),
+						e.getAttribute("cy"), e.getAttribute("rx"),
+						e.getAttribute("ry"));
+
+				list.add(el);
+			}
+
+			// ///// BODY
+		}
 	}
 
 	public static void p(String str) {
