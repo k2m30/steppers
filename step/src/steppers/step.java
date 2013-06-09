@@ -1,5 +1,7 @@
 package steppers;
 
+import XMLTree;
+
 import java.io.File;
 
 
@@ -22,54 +24,54 @@ public class step {
 
 	private static Properties properties = new Properties();
 	private static java.util.Properties drawingProperties;
-	public static step instance = new step();
+	
 
 	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
-
+		step instance = new step();
 		String fileName = "properties.conf";
 
 		// читаем свойства из conf файла
 		drawingProperties = instance.readProperties(fileName);
 
 		// берем файл для рисования
-		String svgFileName = getFilename();
+		String svgFileName = instance.getFilename();
 
 		// разбираем файл на элементы (линия, прямоугольник и т.д.)
-		ArrayList<GElement> elements = parseSVGwrapper(svgFileName);
+		ArrayList<GElement> elements = instance.parseSVGwrapper(svgFileName);
 		//elements = list;
 		// инициализация, выставление в начальную точку
-		Point initialPoint = initialize(properties.initialXTicks,
+		Point initialPoint = instance.initialize(properties.initialXTicks,
 				properties.initialYTicks);
 		listTrace(list);
 		// добавляем переходы между элементами
-		ArrayList<GElement> moreElements = addMoveTo(elements, initialPoint);
+		ArrayList<GElement> moreElements = instance.addMoveTo(elements, initialPoint);
 
 		// listTrace(moreElements);
 
 		// делим элементы на небольшие линейные сегменты
-		ArrayList<Segment> segments = split(moreElements,
+		ArrayList<Segment> segments = instance.split(moreElements,
 				properties.maxSegmentLength);
 
 		// добавляем обходные пути для более плавного движения
-		ArrayList<Segment> allLines = addPathToLines(segments);
+		ArrayList<Segment> allLines = instance.addPathToLines(segments);
 
 		// получение состояний длин ремней для рисования
-		ArrayList<State> states = makeStates(initialPoint, allLines);
+		ArrayList<State> states = instance.makeStates(initialPoint, allLines);
 
 		String outputFileName = "G-code ";
 		// запись G-кода в файл
 		outputFileName = instance.makeNGCfile(states, outputFileName);
 
 		// создание графического файла
-		makeSVGfile(outputFileName);
+		instance.makeSVGfile(outputFileName);
 
 		p("-----finish");
 	}
 
-	private static void makeSVGfile(String fileName) {
+	private void makeSVGfile(String fileName) {
 		if (fileName.isEmpty()) {
 			return;
 		}
@@ -188,7 +190,7 @@ public class step {
 
 	}
 
-	private static String getFilename() {
+	private String getFilename() {
 
 		// TODO Auto-generated method stub
 		//return "file:/Users/Mikhail/Documents/workspace/steppers/bin/Trifold_Brochure.svg";
@@ -228,6 +230,7 @@ public class step {
 					fw.append(" Y");
 					fw.append(Double.toString(states.get(i).lr));
 					fw.append(" Z0");
+					fw.append(" " + states.get(i).comment);
 					fw.append('\n');
 				}
 			}
@@ -257,7 +260,7 @@ public class step {
 	 *            - список сегментов
 	 * @return список состояний
 	 */
-	private static ArrayList<State> makeStates(Point initialPoint,
+	private ArrayList<State> makeStates(Point initialPoint,
 			ArrayList<Segment> allLines) {
 		ArrayList<State> _states = new ArrayList<State>();
 		Iterator<Segment> iterator;
@@ -279,12 +282,12 @@ public class step {
 		return _states;
 	}
 
-	private static Point initialize(double initialXTicks, double initialYTicks) {
+	private Point initialize(double initialXTicks, double initialYTicks) {
 		// TODO Auto-generated method stub
 		return new Point(500, 500);
 	}
 
-	private static ArrayList<Segment> addPathToLines(
+	private ArrayList<Segment> addPathToLines(
 			ArrayList<Segment> moreLines) {
 
 		for (int i = 0; i < moreLines.size() - 1; i++) {
@@ -294,7 +297,7 @@ public class step {
 		return moreLines;
 	}
 
-	private static ArrayList<GElement> addMoveTo(ArrayList<GElement> elements,
+	private ArrayList<GElement> addMoveTo(ArrayList<GElement> elements,
 			Point initialPoint) {
 		for (int i = 0; i < elements.size() - 1; i++) {
 			switch (elements.get(i).type) {
@@ -384,7 +387,7 @@ public class step {
 		return elements;
 	}
 
-	private static ArrayList<Segment> split(ArrayList<GElement> elements,
+	private ArrayList<Segment> split(ArrayList<GElement> elements,
 			double _maxSegmentLength) {
 		ArrayList<Segment> s = new ArrayList<Segment>();
 
@@ -404,8 +407,9 @@ public class step {
 				break;
 			case moveTo:
 				Segment moveToSegment = new Segment(e.getP1(), e.getP2(),
-						e.getP3(), e.getP4());
+						e.getP3(), e.getP4(), properties.canvasSizeX);
 				moveToSegment.isMoveToSegment = true;
+				moveToSegment.comment = new String(" Angle is " + moveToSegment.angle);
 				s.add(moveToSegment);
 				break;
 			case paintTo:
@@ -457,10 +461,10 @@ public class step {
 		for (int i = 1; i <= n; i++) {
 			x2 = x1 + dx / n;
 			y2 = y1 + dy / n;
-			Segment segment = new Segment(x1, y1, x2, y2);
+			Segment segment = new Segment(x1, y1, x2, y2, properties.canvasSizeX);
 			segment.comment = new String("(Line " + e.getP1() + " " + e.getP2()
 					+ " " + e.getP3() + " " + e.getP4() + " " + "Segment #" + i
-					+ ")");
+					+ "). Angle is " + segment.angle);
 			segment.segmentLength = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1)
 					* (y2 - y1));
 			s.add(segment);
@@ -479,6 +483,7 @@ public class step {
 			prop.load(getClass().getResourceAsStream(fileName));
 		} catch (IOException e) {
 			e.printStackTrace();
+			p("properties file is missing");
 		}
 
 		properties.initialXTicks = Double.parseDouble(prop
@@ -504,7 +509,8 @@ public class step {
 		return prop;
 	}
 
-	public static void listTrace(ArrayList<GElement> _list) {
+	private static void listTrace(ArrayList<GElement> _list) {
+		if (_list == null) return;
 		Iterator<GElement> iterator = _list.iterator();
 		while (iterator.hasNext()) {
 			GElement ge = (GElement) iterator.next();
@@ -513,7 +519,7 @@ public class step {
 		return;
 	}
 
-	private static ArrayList<GElement> parseSVGwrapper(String svgFileName) {
+	private ArrayList<GElement> parseSVGwrapper(String svgFileName) {
 		
 		try {
 			p(svgFileName);
