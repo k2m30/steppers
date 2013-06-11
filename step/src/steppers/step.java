@@ -1,6 +1,7 @@
 package steppers;
 
-import XMLTree;
+
+
 
 import java.io.File;
 
@@ -22,7 +23,7 @@ public class step {
 
 	private static ArrayList<GElement> list = new ArrayList<GElement>();
 
-	private static Properties properties = new Properties();
+	private static GProperties properties = new GProperties();
 	private static java.util.Properties drawingProperties;
 	
 
@@ -84,7 +85,7 @@ public class step {
 			return;
 		}
 
-		instance.writeFile(fileContent, fileName);
+		this.writeFile(fileContent, fileName);
 	}
 
 	private void writeFile(ArrayList<String> fileContent, String outputFileName) {

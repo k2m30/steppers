@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" 
+	 width="846.0px" height="1200.0px" viewBox="0 0 846.0 1200.0" enable-background="new 0 0 846.0 1200.0" xml:space="preserve">
+<marker id = "pointMarker" viewBox = "0 0 12 12" refX = "12" refY = "6" markerWidth = "3" markerHeight = "3" stroke = "green" stroke-width = "2" fill = "none" orient = "auto"> 
+<circle cx = "6" cy = "6" r = "5"/>
+</marker>
+<line fill="none" stroke="#FF0000" stroke-miterlimit="5" x1="423.0" y1="NaN" x2="89.1344430815266" y2="355.9223331050507" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="89.1344430815266" y1="355.9223331050507" x2="88.73777734454141" y2="354.3127484627243" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="88.73777734454141" y1="354.3127484627243" x2="88.10303633774275" y2="352.8117904695077" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="88.10303633774275" y1="352.8117904695077" x2="87.25185284506784" y2="351.4411350595615" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="87.25185284506784" y1="351.4411350595615" x2="86.20579528808601" y2="350.22220230102533" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="86.20579528808601" y1="350.22220230102533" x2="84.98647934763032" y2="349.17660120146616" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="84.98647934763032" y1="349.17660120146616" x2="83.61551014049961" y2="348.3258985592213" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="83.61551014049961" y1="348.3258985592213" x2="82.11446926799755" y2="347.69156434309224" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="82.11446926799755" y1="347.69156434309224" x2="80.50496400918814" y2="347.29517397311423" />
+<line fill="none" stroke="#FF0000" stroke-miterlimit="5" x1="80.50496400918814" y1="347.29517397311423" x2="78.80859375" y2="347.15826416015625" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="78.80859375" y1="347.15826416015625" x2="77.11221374643692" y2="347.295152316649" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="77.11221374643692" y1="347.295152316649" x2="75.50272056628114" y2="347.6915994142537" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="75.50272056628114" y1="347.6915994142537" x2="74.00167657995513" y2="348.32590535684517" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="74.00167657995513" y1="348.32590535684517" x2="72.63070937726508" y2="349.17666577218347" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="72.63070937726508" y1="349.17666577218347" x2="71.41139221191408" y2="350.222225189209" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="71.41139221191408" y1="350.222225189209" x2="70.36533797148613" y2="351.44111459003625" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="70.36533797148613" y1="351.44111459003625" x2="69.5141505710411" y2="352.8118234943499" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="69.5141505710411" y1="352.8118234943499" x2="68.87941447575616" y2="354.31274381378256" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="68.87941447575616" y1="354.31274381378256" x2="68.48273527638975" y2="355.9223737783726" />
+<line fill="none" stroke="#FF0000" stroke-miterlimit="5" x1="68.48273527638975" y1="355.9223737783726" x2="68.34571075439455" y2="357.61917114257807" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="68.34571075439455" y1="357.61917114257807" x2="68.4827300788741" y2="359.31604321197244" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="68.4827300788741" y1="359.31604321197244" x2="68.87941770906957" y2="360.9260271031428" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="68.87941770906957" y1="360.9260271031428" x2="69.51414442608895" y2="362.4273699120529" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="69.51414442608895" y1="362.4273699120529" x2="70.3653392718856" y2="363.7986252190228" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="70.3653392718856" y1="363.7986252190228" x2="71.4113817214966" y2="365.0180854797363" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="71.4113817214966" y1="365.0180854797363" x2="72.63068839634887" y2="366.0642372283794" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="72.63068839634887" y1="366.0642372283794" x2="74.00166769247167" y2="366.9155239452869" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="74.00166769247167" y1="366.9155239452869" x2="75.50270777724215" y2="367.55028743655214" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="75.50270777724215" y1="367.55028743655214" x2="77.11221881112134" y2="367.9469803795463" />
+<line fill="none" stroke="#FF0000" stroke-miterlimit="5" x1="77.11221881112134" y1="367.9469803795463" x2="78.80860137939456" y2="368.0840148925781" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="78.80860137939456" y1="368.0840148925781" x2="80.50497712941737" y2="367.94695514016735" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="80.50497712941737" y1="367.94695514016735" x2="82.1144996338162" y2="367.55031750922944" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="82.1144996338162" y1="367.55031750922944" x2="83.61553419791426" y2="366.9155180250707" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="83.61553419791426" y1="366.9155180250707" x2="84.9865151493591" y2="366.06428615695563" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="84.9865151493591" y1="366.06428615695563" x2="86.20581722259524" y2="365.0180854797363" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="86.20581722259524" y1="365.0180854797363" x2="87.25185992385764" y2="363.79857613450827" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="87.25185992385764" y1="363.79857613450827" x2="88.10305294246895" y2="362.4273744613023" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="88.10305294246895" y1="362.4273744613023" x2="88.73778167348102" y2="360.9259959047926" />
+<line fill="none" stroke="#000000" marker-start = "url(#pointMarker)" x1="88.73778167348102" y1="360.9259959047926" x2="89.13445805721643" y2="359.3160659133126" />
+</svg>

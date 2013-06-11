@@ -1,6 +1,6 @@
-package steppers;
 
-public class Properties {
+
+public class GProperties {
 	public double canvasSizeX;
 	public double canvasSizeY;
 	public double maxV;

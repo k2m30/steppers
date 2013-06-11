@@ -1,27 +1,24 @@
-package steppers;
 
 
 
-public class State {
+
+public class GState {
 	public double x;
 	public double y;
 	public double vl; // скорость левого двигателя
 	public double vr; // скорость правого двигателя
 	public double ll; // длина левого ремня
 	public double lr; // длина правого ремня
-	public Pins pins; // физические выводы порта
 	public String comment;
 	public boolean isMoveTo = false;
 	public double rate;
 
-	State() {
+	GState() {
 		x = y = vl = vr = ll = lr = 0;
-		pins = new Pins();
 		comment = null;
 	}
 
-	State(double _x, double _y, GProperties p) {
-		pins = new Pins();
+	GState(double _x, double _y, GProperties p) {
 		comment = "Added directly";
 		x = _x;
 		y = _y;
@@ -29,8 +26,7 @@ public class State {
 		lr = Math.sqrt((p.canvasSizeX - x) * (p.canvasSizeX - x) + y * y);
 	}
 
-	public State(Segment s, GProperties p) {
-		pins = new Pins();
+	public GState(GSegment s, GProperties p) {
 		comment = "Added directly";
 
 		// вычисление соотношения между длинами отрезков в декартовой и
