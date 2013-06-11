@@ -71,7 +71,7 @@ public class XMLTree {
 
 		// создание графического файла
 		instance.makeSVGfile(outputFileName);
-		
+
 		instance.p("--------finish");
 
 	}
@@ -505,6 +505,7 @@ public class XMLTree {
 						"polyline", k.getClass()).invoke(this, k);
 
 				list = applyCurrentScale(list, (SVGOMElement) k);
+				list = applyCurrentTranslate(list, (SVGOMElement) k);
 
 				// double translate = getCurrentTranslate(k);
 				// applyCurrentTranslate(list, translate);
@@ -519,9 +520,45 @@ public class XMLTree {
 		return null;
 	}
 
-	private double getCurrentTranslate(Node k) {
-		// TODO Auto-generated method stub
-		return 0;
+	private double[] getCurrentTranslate(SVGOMElement k) {
+		
+		for (SVGOMElement n = k; !n.getLocalName().equalsIgnoreCase("svg"); n = (SVGOMElement) n
+				.getParentNode()) {
+			String transform = n.getAttribute("transform");
+
+			if ((transform != null) && (!transform.equals(""))) {
+				transform = transform.toLowerCase();
+				if (transform.contains("translate")) {
+					int openBracketPosition = transform.indexOf("(",
+							transform.indexOf("translate")) + 1;
+					int closeBracketPosition = transform.indexOf(")",
+							transform.indexOf("translate"));
+					String translate = transform.substring(openBracketPosition,
+							closeBracketPosition);
+
+					String _translate[] = translate.split("[^\\w]");
+					double translateValue[] = new double[2];
+
+					for (int i = 0; i < _translate.length; i++) {
+						translateValue[i] = Double.parseDouble(_translate[i]);
+						// translate(<tx> [<ty>]). If <ty> is not provided, it
+						// is assumed to be zero.
+					}
+					if (_translate.length == 1) {
+						translateValue[1] = 0;
+
+					}
+
+					return translateValue;
+				}
+
+			}
+		}
+
+		double translateValue[] = new double[1]; // если нет, вернуть 0
+		translateValue[0] = 0;
+		translateValue[1] = 0;
+		return translateValue;
 	}
 
 	private double[] getCurrentScale(SVGOMElement k) {
@@ -562,12 +599,26 @@ public class XMLTree {
 		}
 		double scaleValue[] = new double[1]; // если нет, вернуть 1
 		scaleValue[0] = 1;
+		scaleValue[1] = 1;
 		return scaleValue;
 	}
 
-	private void applyCurrentTranslate(ArrayList<GElement> list,
-			double translate) {
-		// TODO Auto-generated method stub
+	private ArrayList<GElement> applyCurrentTranslate(ArrayList<GElement> list,
+			SVGOMElement n) {
+		if (list == null) {
+			return list;
+		}
+		double translate[] = getCurrentTranslate(n);
+		if ((translate[0] == 0) && (translate[1] == 0)) {
+			return list;
+		}
+		for (int i = 0; i < list.size(); i++) {
+			list.get(i).set(1, list.get(i).getP(1) + translate[0]);
+			list.get(i).set(2, list.get(i).getP(2) + translate[1]);
+			list.get(i).set(3, list.get(i).getP(3) + translate[0]);
+			list.get(i).set(4, list.get(i).getP(4) + translate[1]);
+		}
+		return list;
 
 	}
 
@@ -581,10 +632,10 @@ public class XMLTree {
 			return list;
 		}
 		for (int i = 0; i < list.size(); i++) {
-			list.get(i).set(1, list.get(i).getP(1) * scale[0]); 
-			list.get(i).set(2, list.get(i).getP(2) * scale[1]); 
-			list.get(i).set(3, list.get(i).getP(3) * scale[0]); 
-			list.get(i).set(4, list.get(i).getP(4) * scale[1]); 
+			list.get(i).set(1, list.get(i).getP(1) * scale[0]);
+			list.get(i).set(2, list.get(i).getP(2) * scale[1]);
+			list.get(i).set(3, list.get(i).getP(3) * scale[0]);
+			list.get(i).set(4, list.get(i).getP(4) * scale[1]);
 		}
 		return list;
 

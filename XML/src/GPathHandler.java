@@ -283,7 +283,8 @@ public class GPathHandler implements PathHandler {
 
 	@Override
 	public void closePath() throws ParseException {
-		// TODO Auto-generated method stub
+		tmpX = Float.NaN;
+		tmpY = Float.NaN;
 
 	}
 
