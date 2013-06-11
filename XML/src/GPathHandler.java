@@ -130,9 +130,9 @@ public class GPathHandler implements PathHandler {
 	}
 
 	private ArrayList<GElement> makeLinesFromCubicCurve(GElement ge) {
-		int size = 10;
-		double[] x = new double[size];
-		double[] y = new double[size];
+		int size = 10;// Double.parseDouble(XMLTree.drawingProperties.getProperty("maxSegmentLength"));
+		double[] x = new double[size + 1];
+		double[] y = new double[size + 1];
 		float t = 0;
 		float dt = (float) (1.0 / size);
 
@@ -153,8 +153,16 @@ public class GPathHandler implements PathHandler {
 			t += dt;
 		}
 
+		t = 1;
+		x[size] = (1 - t) * (1 - t) * (1 - t) * ge.getP(1) + 3 * t
+				* (1 - t) * (1 - t) * ge.getP(3) + 3 * t * t * (1 - t)
+				* ge.getP(5) + t * t * t * ge.getP(7);
+		y[size] = (1 - t) * (1 - t) * (1 - t) * ge.getP(2) + 3 * t
+				* (1 - t) * (1 - t) * ge.getP(4) + 3 * t * t * (1 - t)
+				* ge.getP(6) + t * t * t * ge.getP(8);
+
 		ArrayList<GElement> lineList = new ArrayList<GElement>();
-		for (int i = 0; i < size - 1; i++) {
+		for (int i = 0; i < size; i++) {
 			lineList.add(new GElement(EType.line, x[i], y[i], x[i + 1],
 					y[i + 1]));
 		}

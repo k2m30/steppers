@@ -28,7 +28,7 @@ import org.w3c.dom.Node;
 public class XMLTree {
 
 	private static GProperties properties = new GProperties();
-	private static java.util.Properties drawingProperties;
+	protected static java.util.Properties drawingProperties;
 
 	/**
 	 * @param args
@@ -57,7 +57,7 @@ public class XMLTree {
 		ArrayList<GSegment> segments = instance.splitElementsToSegments(
 				moreElements, properties.maxSegmentLength);
 
-		instance.listTrace(moreElements);
+		instance.listTrace(elements);
 
 		// добавляем обходные пути для более плавного движения
 		ArrayList<GSegment> allLines = instance.addSmoothPathToLines(segments);
@@ -74,6 +74,19 @@ public class XMLTree {
 
 		instance.p("--------finish");
 
+	}
+
+	private void segmentsTrace(ArrayList<GSegment> segments) {
+
+		if (segments == null) {
+			return;
+		}
+		for (int i = 0; i < segments.size(); i++) {
+			p(Double.toString(segments.get(i).xStart) + " "
+					+ Double.toString(segments.get(i).yStart) + " "
+					+ Double.toString(segments.get(i).xEnd) + " "
+					+ Double.toString(segments.get(i).yEnd));
+		}
 	}
 
 	private void makeSVGfile(String fileName) {
@@ -258,15 +271,20 @@ public class XMLTree {
 		iterator = allLines.iterator();
 
 		GSegment s;
+		GState st;
 
+		st = new GState(allLines.get(0).xStart, allLines.get(0).yStart,
+				properties);
+		_states.add(st);
 		while (iterator.hasNext()) {
 			s = iterator.next();
-			GState st = new GState(s, properties);
+			st = new GState(s, properties);
 
 			if (s.isMoveToSegment)
 				st.isMoveTo = true;
 			st.comment = s.comment;
 			_states.add(st);
+			//p(Double.toString(st.x) + " " + Double.toString(st.y));
 
 		}
 
@@ -443,7 +461,11 @@ public class XMLTree {
 		// TODO Auto-generated method stub
 		// return
 		// "file:/Users/Mikhail/Documents/workspace/steppers/bin/Trifold_Brochure.svg";
-		return "file:///Users/Mikhail/Downloads/chem1.svg";
+		 //return "file:///Users/Mikhail/Downloads/chem1.svg";
+		//return "file:///Users/Mikhail/Downloads/money_7.svg";
+		 //return "file:///Users/Mikhail/Downloads/scroll-heart.svg";
+		 //return "file:///Users/Mikhail/Downloads/Cat_in_a_pan.svg";
+		 return "file:///Users/Mikhail/Downloads/High_tech_coffee.svg";
 		// return
 		// "file:/Users/Mikhail/Documents/workspace/steppers/bin/Domik.svg";
 	}
@@ -503,10 +525,10 @@ public class XMLTree {
 			try {
 				list = (ArrayList<GElement>) XMLTree.class.getDeclaredMethod(
 						"polyline", k.getClass()).invoke(this, k);
-
-				list = applyCurrentScale(list, (SVGOMElement) k);
-				list = applyCurrentTranslate(list, (SVGOMElement) k);
-
+				if (list != null) {
+					list = applyCurrentTranslate(list, (SVGOMElement) k);
+					list = applyCurrentScale(list, (SVGOMElement) k);
+				}
 				// double translate = getCurrentTranslate(k);
 				// applyCurrentTranslate(list, translate);
 
@@ -521,7 +543,7 @@ public class XMLTree {
 	}
 
 	private double[] getCurrentTranslate(SVGOMElement k) {
-		
+
 		for (SVGOMElement n = k; !n.getLocalName().equalsIgnoreCase("svg"); n = (SVGOMElement) n
 				.getParentNode()) {
 			String transform = n.getAttribute("transform");
@@ -536,7 +558,7 @@ public class XMLTree {
 					String translate = transform.substring(openBracketPosition,
 							closeBracketPosition);
 
-					String _translate[] = translate.split("[^\\w]");
+					String _translate[] = translate.split("[ ;,:]");
 					double translateValue[] = new double[2];
 
 					for (int i = 0; i < _translate.length; i++) {
@@ -555,7 +577,7 @@ public class XMLTree {
 			}
 		}
 
-		double translateValue[] = new double[1]; // если нет, вернуть 0
+		double translateValue[] = new double[2]; // если нет, вернуть 0
 		translateValue[0] = 0;
 		translateValue[1] = 0;
 		return translateValue;
@@ -577,7 +599,7 @@ public class XMLTree {
 					String scale = transform.substring(openBracketPosition,
 							closeBracketPosition);
 
-					String _scale[] = scale.split("[^\\w]");
+					String _scale[] = scale.split("[ :,;]");
 					double scaleValue[] = new double[3];
 
 					for (int i = 0; i < _scale.length; i++) {
@@ -590,14 +612,14 @@ public class XMLTree {
 						scaleValue[2] = scaleValue[0];
 					}
 					if (_scale.length == 2) {
-						scaleValue[1] = scaleValue[0];
+						scaleValue[2] = scaleValue[0];
 					}
 					return scaleValue;
 				}
 
 			}
 		}
-		double scaleValue[] = new double[1]; // если нет, вернуть 1
+		double scaleValue[] = new double[2]; // если нет, вернуть 1
 		scaleValue[0] = 1;
 		scaleValue[1] = 1;
 		return scaleValue;
@@ -665,18 +687,21 @@ public class XMLTree {
 	}
 
 	protected ArrayList<GElement> polyline(SVGOMRectElement rect) {
-		p("it works rectangle");
-		GElement el = new GElement(EType.rectangle, rect.getAttribute("x"),
-				rect.getAttribute("y"), rect.getAttribute("width"),
-				rect.getAttribute("height"));
+		p("rectangle");
+		double x1 = Double.parseDouble(rect.getAttribute("x"));
+		double y1 = Double.parseDouble(rect.getAttribute("y"));
+		double width = Double.parseDouble(rect.getAttribute("width"));
+		double heigth = Double.parseDouble(rect.getAttribute("heigth"));
 
-		return makeLinesListFromRectangle(el);
+		ArrayList<GElement> list = new ArrayList<GElement>();
+		list.add(new GElement(EType.line, x1, y1, x1 + width, y1));
+		list.add(new GElement(EType.line, x1 + width, y1, x1 + width, y1
+				+ heigth));
+		list.add(new GElement(EType.line, x1 + width, y1 + heigth, x1, y1
+				+ heigth));
+		list.add(new GElement(EType.line, x1, y1 + heigth, x1, y1));
+		return list;
 
-	}
-
-	private ArrayList<GElement> makeLinesListFromRectangle(GElement el) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	protected ArrayList<GElement> polyline(SVGOMLineElement line) {
